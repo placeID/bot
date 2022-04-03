@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PlaceID Bot
 // @namespace    https://github.com/placeID/bot
-// @version      1
+// @version      2
 // @description  Bot /r/place untuk r/indonesia
 // @author       NoahvdAa, reckter, SgtChrome, nama17, pejuangkorpus
 // @match        https://www.reddit.com/r/place/*
@@ -21,7 +21,7 @@ var placeOrders = [];
 var accessToken;
 var canvas = document.createElement('canvas');
 
-const VERSI = 1;
+const VERSI = 2;
 var BELUM_DIPERBARUI = false;
 
 const PETA_WARNA = {
@@ -58,7 +58,7 @@ const PETA_WARNA = {
 	canvas = document.body.appendChild(canvas);
 
 	Toastify({
-		text: 'Meminta token akses...',
+		text: 'Mengambil token akses...',
 		duration: 10000
 	}).showToast();
 	accessToken = await getAccessToken();
@@ -93,7 +93,7 @@ async function attemptPlace() {
 	var ctx;
 	try {
 		ctx = await getCanvasFromUrl(await getCurrentImageUrl('0'), canvas, 0, 0);
-		ctx = await getCanvasFromUrl(await getCurrentImageUrl('1'), canvas, 1000, 0)
+		ctx = await getCanvasFromUrl(await getCurrentImageUrl('1'), canvas, 1000, 0);
 	} catch (e) {
 		console.warn('Galat ketika mengambil papan:', e);
 		Toastify({
@@ -134,10 +134,10 @@ async function attemptPlace() {
 		// Tambah beberapa detik secara acak ke timestamp piksel selanjutnya
 		const waitFor = nextAvailablePixelTimestamp - time + (Math.random() * 1000 * 15);
 
-		const minutes = Math.floor(waitFor / (1000 * 60))
-		const seconds = Math.floor((waitFor / 1000) % 60)
+		const minutes = padLeft2(Math.floor(waitFor / (1000 * 60)))
+		const seconds = padLeft2(Math.floor((waitFor / 1000) % 60))
 		Toastify({
-			text: `Menunggu waktu jeda ${minutes}.${seconds} sampai ${new Date(nextAvailablePixelTimestamp).toLocaleTimeString()}`,
+			text: `Menunggu waktu jeda ${minutes}.${seconds} menit sampai ${new Date(nextAvailablePixelTimestamp).toLocaleTimeString()}`,
 			duration: waitFor
 		}).showToast();
 		setTimeout(attemptPlace, waitFor);
@@ -159,7 +159,7 @@ function updateOrders() {
 				pixelCount += data.structures[structureName].pixels.length;
 			}
 			Toastify({
-				text: `Struktur baru dimuat. Gambar: ${structureCount} - Jumlah piksel: ${pixelCount}.`,
+				text: `Perintah baru dimuat: ${structureCount} struktur (${pixelCount} piksel).`,
 				duration: 10000
 			}).showToast();
 		}
@@ -167,7 +167,7 @@ function updateOrders() {
 		if (data?.VERSI !== VERSI && !BELUM_DIPERBARUI) {
 			BELUM_DIPERBARUI = true
 			Toastify({
-				text: `VERSI BARU TERSEDIA! Perbarui di sini: https://github.com/placeID/bot/raw/main/placeidbot.user.js`,
+				text: `VERSI BARU TERSEDIA! Perbarui di sini: https://github.com/placeID/bot/raw/main/placeidbot.user.js (atau klik pesan ini)`,
 				duration: -1,
 				onClick: () => {
 					// Tapermonkey menangkapnya dan membuka di tab baru
@@ -247,6 +247,11 @@ async function place(x, y, color) {
 		}).showToast();
 		return data.errors[0].extensions?.nextAvailablePixelTs
 	}
+	console.log('Piksel berhasil diatur');
+	Toastify({
+		text: 'Piksel berhasil diatur',
+		duration: 10000
+	}).showToast();
 	return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp
 }
 
@@ -256,7 +261,7 @@ async function getAccessToken() {
 	const response = await fetch(url);
 	const responseText = await response.text();
 
-	// TODO: cari cara yang lebih aman
+	// TODO: cari cara yang lebih baik
 	return responseText.split('\"accessToken\":\"')[1].split('"')[0];
 }
 
@@ -312,7 +317,7 @@ async function getCurrentImageUrl(id = '0') {
 			const { data } = message;
 			const parsed = JSON.parse(data);
 
-			// TODO: ew
+			// TODO: cari cara yang lebih baik
 			if (!parsed.payload || !parsed.payload.data || !parsed.payload.data.subscribe || !parsed.payload.data.subscribe.data) return;
 
 			ws.close();
@@ -336,6 +341,11 @@ function getCanvasFromUrl(url, canvas, x = 0, y = 0) {
 		img.onerror = reject;
 		img.src = url;
 	});
+}
+
+function padLeft2(a) {
+	a = a.toString()
+	return a.length == 1 ? "0" + a : a;
 }
 
 function rgbToHex(r, g, b) {
