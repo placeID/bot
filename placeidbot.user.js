@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PlaceID Bot
 // @namespace    https://github.com/placeID/bot
-// @version      2
+// @version      3
 // @description  Bot /r/place untuk r/indonesia
 // @author       NoahvdAa, reckter, SgtChrome, nama17, pejuangkorpus
 // @match        https://www.reddit.com/r/place/*
@@ -21,7 +21,7 @@ var placeOrders = [];
 var accessToken;
 var canvas = document.createElement('canvas');
 
-const VERSI = 2;
+const VERSI = 3;
 var BELUM_DIPERBARUI = false;
 
 const PETA_WARNA = {
@@ -59,12 +59,12 @@ const PETA_WARNA = {
 
 	Toastify({
 		text: 'Mengambil token akses...',
-		duration: 10000
+		duration: 10000 // 10 detik
 	}).showToast();
 	accessToken = await getAccessToken();
 	Toastify({
 		text: 'Token akses didapatkan!',
-		duration: 10000
+		duration: 30000 // 30 detik
 	}).showToast();
 
 	setInterval(updateOrders, 5 * 60 * 1000); // Perbarui perintah tiap lima menit.
@@ -98,7 +98,7 @@ async function attemptPlace() {
 		console.warn('Galat ketika mengambil papan:', e);
 		Toastify({
 			text: 'Galat ketika mengambil papan. Ulangi dalam 15 detik...',
-			duration: 10000
+			duration: 15000 // 15 detik
 		}).showToast();
 		setTimeout(attemptPlace, 15000); // Coba lagi dalam 15 detik.
 		return;
@@ -119,7 +119,7 @@ async function attemptPlace() {
 
 		Toastify({
 			text: `Mengatur piksel di (${x}, ${y})...`,
-			duration: 10000
+			duration: 300000 // 5 menit
 		}).showToast();
 		console.log(`Mengatur piksel di (${x}, ${y})...`);
 
@@ -137,7 +137,7 @@ async function attemptPlace() {
 		const minutes = padLeft2(Math.floor(waitFor / (1000 * 60)))
 		const seconds = padLeft2(Math.floor((waitFor / 1000) % 60))
 		Toastify({
-			text: `Menunggu waktu jeda ${minutes}.${seconds} menit sampai ${new Date(nextAvailablePixelTimestamp).toLocaleTimeString()}`,
+			text: `Menunggu waktu jeda ${minutes}.${seconds} menit sampai ${new Date(time + waitFor).toLocaleTimeString()}`,
 			duration: waitFor
 		}).showToast();
 		setTimeout(attemptPlace, waitFor);
@@ -160,7 +160,7 @@ function updateOrders() {
 			}
 			Toastify({
 				text: `Perintah baru dimuat: ${structureCount} struktur (${pixelCount} piksel).`,
-				duration: 10000
+				duration: 30000 // 30 detik
 			}).showToast();
 		}
 
@@ -243,14 +243,14 @@ async function place(x, y, color) {
 		console.warn('Galat saat mengatur piksel. Menunggu waktu jeda...');
 		Toastify({
 			text: 'Galat saat mengatur piksel. Menunggu waktu jeda...',
-			duration: 10000
+			duration: 300000 // 5 menit
 		}).showToast();
 		return data.errors[0].extensions?.nextAvailablePixelTs
 	}
 	console.log('Piksel berhasil diatur');
 	Toastify({
 		text: 'Piksel berhasil diatur',
-		duration: 10000
+		duration: 300000 // 5 menit
 	}).showToast();
 	return data?.data?.act?.data?.[0]?.data?.nextAvailablePixelTimestamp
 }
